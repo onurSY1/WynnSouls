@@ -60,7 +60,7 @@ app.get('/', async (req, res) => {
   res.send(responseText);
 });
 
-const PORT = 443; // Change this to the desired port number
+const PORT = 3001; // Change this to the desired port number
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
