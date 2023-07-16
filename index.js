@@ -24,7 +24,7 @@ function getExcessTime(seconds) {
   return 20 * 60 - remainder; // Subtract the remainder from 20 minutes to get the excess time (in seconds)
 }
 
-app.get('/closest-worlds', async (req, res) => {
+app.get('/', async (req, res) => {
   const worldsData = await getWorlds();
 
   if (!worldsData) {
@@ -60,7 +60,7 @@ app.get('/closest-worlds', async (req, res) => {
   res.send(responseText);
 });
 
-const PORT = 3000; // Change this to the desired port number
+const PORT = 443; // Change this to the desired port number
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
