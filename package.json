@@ -1,0 +1,13 @@
+{
+  "name": "closest-worlds-express",
+  "version": "1.0.0",
+  "description": "Express server to list the closest worlds with their excess time.",
+  "main": "app.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "axios": "^0.24.0",
+    "express": "^4.17.1"
+  }
+}
