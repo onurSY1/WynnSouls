@@ -24,6 +24,8 @@ function getExcessTime(seconds) {
   return 20 * 60 - remainder; // Subtract the remainder from 20 minutes to get the excess time (in seconds)
 }
 
+const apiLatencySeconds = 75; // Set the API latency to 1 minute and 15 seconds
+
 app.get('/', async (req, res) => {
   const worldsData = await getWorlds();
 
@@ -38,7 +40,7 @@ app.get('/', async (req, res) => {
   for (const [worldName, worldInfo] of Object.entries(worldsData)) {
     const { firstSeen } = worldInfo;
     const timeDifference = Math.abs(nowUnixTime - Math.floor(firstSeen / 1000));
-    const excessTime = getExcessTime(timeDifference);
+    const excessTime = getExcessTime(timeDifference) - apiLatencySeconds; // Adjust for the API latency
 
     worlds.push({
       name: worldName,
