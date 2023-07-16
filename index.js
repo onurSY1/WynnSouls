@@ -1,7 +1,8 @@
-const express = require('express');
 const axios = require('axios');
+const { WebhookClient } = require('discord.js');
+const moment = require('moment');
 
-const app = express();
+const webhookClient = new WebhookClient({ id: "1130070823835807785" , token: "NHLU_LlO2_NvsJFkNNRJKrJPo9fyAEBNIf0h9IGuFGxgVN1kn-KmcFrOkd_T0gOO-kyL" });
 
 async function getWorlds(callback) {
   try {
@@ -24,23 +25,22 @@ function getExcessTime(seconds) {
   return 20 * 60 - remainder; // Subtract the remainder from 20 minutes to get the excess time (in seconds)
 }
 
-const apiLatencySeconds = 75; // Set the API latency to 1 minute and 15 seconds
-
-app.get('/', async (req, res) => {
+async function updateWorldsData() {
   const worldsData = await getWorlds();
 
   if (!worldsData) {
-    return res.status(500).send('Error fetching data');
+    console.error('Error fetching data');
+    return;
   }
 
-  const nowUnixTime = Math.floor(Date.now() / 1000); // Convert current timestamp to Unix time (in seconds)
+  const nowUnixTime = Math.floor(Date.now() / 1000);
   const worlds = [];
 
   // Extract the worlds and their firstSeen timestamps from the provided data
   for (const [worldName, worldInfo] of Object.entries(worldsData)) {
     const { firstSeen } = worldInfo;
     const timeDifference = Math.abs(nowUnixTime - Math.floor(firstSeen / 1000));
-    const excessTime = getExcessTime(timeDifference) - apiLatencySeconds; // Adjust for the API latency
+    const excessTime = getExcessTime(timeDifference);
 
     worlds.push({
       name: worldName,
@@ -51,18 +51,25 @@ app.get('/', async (req, res) => {
   // Sort the worlds based on excessTime from closest to farthest
   worlds.sort((a, b) => a.excessTime - b.excessTime);
 
-  // Generate plain text response with the closest 10 worlds and their excess time
-  let responseText = 'Closest Worlds:\n\n';
-  worlds.forEach(world => {
+  let message = 'Closest Worlds:\n\n';
+
+  worlds.slice(0, 20).forEach(world => {
     const timeFormatted = formatTime(world.excessTime);
-    responseText += `${world.name}: ${timeFormatted}\n`;
+    message += `${world.name}: ${timeFormatted}\n`;
   });
 
-  res.set('Content-Type', 'text/plain');
-  res.send(responseText);
-});
+  const timestamp = moment().unix(); // Get the current timestamp in Unix time
+  message += `\n\nUpdated <t:${timestamp}:R> ago\n`; // Add the timestamp to the message content using the <t:{timestamp}> format
 
-const PORT = 3001; // Change this to the desired port number
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+  webhookClient.editMessage('1130077104655048784', {
+    content: message,
+    username: "Wynnsouls",
+  });
+}
+
+// Fetch data initially when the script starts
+updateWorldsData();
+
+// Set interval to refresh data every 2 seconds (you can change this to your desired interval)
+const refreshIntervalSeconds = 2;
+setInterval(updateWorldsData, refreshIntervalSeconds * 1000);
