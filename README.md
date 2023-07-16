@@ -1,0 +1,1 @@
+**https://wynnsouls.cyclic.app/**
