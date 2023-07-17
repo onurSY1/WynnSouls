@@ -1,8 +1,7 @@
+const express = require('express');
 const axios = require('axios');
-const { WebhookClient } = require('discord.js');
-const moment = require('moment');
 
-const webhookClient = new WebhookClient({ id: "1130070823835807785" , token: "NHLU_LlO2_NvsJFkNNRJKrJPo9fyAEBNIf0h9IGuFGxgVN1kn-KmcFrOkd_T0gOO-kyL" });
+const app = express();
 
 async function getWorlds(callback) {
   try {
@@ -25,15 +24,14 @@ function getExcessTime(seconds) {
   return 20 * 60 - remainder; // Subtract the remainder from 20 minutes to get the excess time (in seconds)
 }
 
-async function updateWorldsData() {
+app.get('/', async (req, res) => {
   const worldsData = await getWorlds();
 
   if (!worldsData) {
-    console.error('Error fetching data');
-    return;
+    return res.status(500).send('Error fetching data');
   }
 
-  const nowUnixTime = Math.floor(Date.now() / 1000);
+  const nowUnixTime = Math.floor(Date.now() / 1000); // Convert current timestamp to Unix time (in seconds)
   const worlds = [];
 
   // Extract the worlds and their firstSeen timestamps from the provided data
@@ -51,25 +49,18 @@ async function updateWorldsData() {
   // Sort the worlds based on excessTime from closest to farthest
   worlds.sort((a, b) => a.excessTime - b.excessTime);
 
-  let message = 'Closest Worlds:\n\n';
-
-  worlds.slice(0, 20).forEach(world => {
+  // Generate plain text response with the closest 10 worlds and their excess time
+  let responseText = 'Closest Worlds:\n\n';
+  worlds.forEach(world => {
     const timeFormatted = formatTime(world.excessTime);
-    message += `${world.name}: ${timeFormatted}\n`;
+    responseText += `${world.name}: ${timeFormatted}\n`;
   });
 
-  const timestamp = moment().unix(); // Get the current timestamp in Unix time
-  message += `\n\nUpdated <t:${timestamp}:R> ago\n`; // Add the timestamp to the message content using the <t:{timestamp}> format
+  res.set('Content-Type', 'text/plain');
+  res.send(responseText);
+});
 
-  webhookClient.editMessage('1130077104655048784', {
-    content: message,
-    username: "Wynnsouls",
-  });
-}
-
-// Fetch data initially when the script starts
-updateWorldsData();
-
-// Set interval to refresh data every 2 seconds (you can change this to your desired interval)
-const refreshIntervalSeconds = 2;
-setInterval(updateWorldsData, refreshIntervalSeconds * 1000);
+const PORT = 3001; // Change this to the desired port number
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
